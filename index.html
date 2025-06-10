@@ -16,7 +16,7 @@
   h1 {
     text-align: center;
   }
-  label, button {
+  label {
     display: block;
     margin-top: 15px;
   }
@@ -24,6 +24,14 @@
     width: 100%;
     padding: 8px;
     font-size: 1rem;
+  }
+  button {
+    margin-top: 15px;
+    padding: 10px;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
   }
   #ausgabe {
     margin-top: 20px;
@@ -37,9 +45,6 @@
     text-align: center;
   }
   #weiterBtn {
-    margin-top: 20px;
-    padding: 10px;
-    font-size: 1rem;
     display: none;
   }
 </style>
@@ -66,7 +71,6 @@
     "Fenster", "Tür", "Lampe", "Schule", "Hund", "Katze", "Vogel", "Blume", "Berg", "See",
     "Fluss", "Meer", "Wald", "Garten", "Brücke", "Zug", "Flugzeug", "Boot", "Küche", "Bad",
     "Bett", "Sofa", "Bild", "Schrank", "Uhr", "Handy", "Kamera", "Radio", "Musik", "Film"
-    // ... kannst du erweitern ...
   ];
 
   const ausgabe = document.getElementById('ausgabe');
@@ -79,6 +83,7 @@
   let rollen = [];
   let aktuellerSpieler = 0;
   let wort;
+  let spielBeendet = false;
 
   function mischeArray(array) {
     for (let i = array.length -1; i > 0; i--) {
@@ -105,7 +110,6 @@
   function spielStarten() {
     if (!validiereEingaben()) return;
 
-    // Rollen erstellen
     rollen = [];
     wort = woerter[Math.floor(Math.random() * woerter.length)];
 
@@ -114,6 +118,8 @@
     mischeArray(rollen);
 
     aktuellerSpieler = 0;
+    spielBeendet = false;
+
     startBtn.style.display = 'none';
     spielerInput.disabled = true;
     imposterInput.disabled = true;
@@ -124,23 +130,9 @@
 
   function zeigeNaechstenSpieler() {
     if (aktuellerSpieler >= spielerAnzahl) {
-      // Alle Spieler hatten ihr Wort
-      const startspieler = Math.floor(Math.random() * spielerAnzahl) + 1;
-      ausgabe.innerHTML = `<p>Alle Spieler haben ihr Wort gesehen.</p>
-        <p>Spieler <strong>${startspieler}</strong> darf das Spiel starten. Viel Erfolg!</p>
-        <button id="neuBtn">Neue Runde spielen</button>`;
-      weiterBtn.style.display = 'none';
-
-      document.getElementById('neuBtn').addEventListener('click', () => {
-        spielerInput.disabled = false;
-        imposterInput.disabled = false;
-        startBtn.style.display = 'inline-block';
-        ausgabe.innerHTML = '';
-      });
-
+      ausgabe.innerHTML = `Alle Spieler haben ihr Wort gesehen.<br>Klicke auf "Weiter", um den Startspieler zu ermitteln.`;
       return;
     }
-
     ausgabe.innerHTML = `Spieler <strong>${aktuellerSpieler + 1}</strong>, klicke auf "Weiter", um dein Wort zu sehen.`;
   }
 
@@ -156,15 +148,36 @@
     aktuellerSpieler++;
   }
 
+  function zeigeEnde() {
+    const startspieler = Math.floor(Math.random() * spielerAnzahl) + 1;
+    ausgabe.innerHTML = `
+      <p>Alle Spieler haben ihr Wort gesehen.</p>
+      <p>Spieler <strong>${startspieler}</strong> darf das Spiel starten. Viel Erfolg!</p>
+      <button id="neuBtn">Neue Runde spielen</button>
+    `;
+    weiterBtn.style.display = 'none';
+    spielBeendet = true;
+
+    document.getElementById('neuBtn').addEventListener('click', () => {
+      spielerInput.disabled = false;
+      imposterInput.disabled = false;
+      startBtn.style.display = 'inline-block';
+      ausgabe.innerHTML = '';
+      spielBeendet = false;
+    });
+  }
+
   weiterBtn.addEventListener('click', () => {
+    if (spielBeendet) return;
+
     if (aktuellerSpieler < spielerAnzahl) {
       if (ausgabe.innerHTML.includes("dein Wort ist")) {
-        // Wort wurde gezeigt, jetzt zum nächsten Spieler
         zeigeNaechstenSpieler();
       } else {
-        // Noch kein Wort gezeigt, Wort zeigen
         zeigeWort();
       }
+    } else {
+      zeigeEnde();
     }
   });
 
