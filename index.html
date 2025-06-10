@@ -1,25 +1,176 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <title>Wortspiel</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Wortspiel</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 500px;
+    margin: 30px auto;
+    padding: 10px;
+    background: #f0f0f0;
+    border-radius: 8px;
+  }
+  h1 {
+    text-align: center;
+  }
+  label, button {
+    display: block;
+    margin-top: 15px;
+  }
+  input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    font-size: 1rem;
+  }
+  #ausgabe {
+    margin-top: 20px;
+    min-height: 80px;
+    background: white;
+    border-radius: 6px;
+    padding: 15px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: green;
+    text-align: center;
+  }
+  #weiterBtn {
+    margin-top: 20px;
+    padding: 10px;
+    font-size: 1rem;
+    display: none;
+  }
+</style>
 </head>
 <body>
-  <h1>Wortspiel</h1>
-  <p>Das Spiel läuft in der Browser-Konsole.</p>
-  <p>Öffne die Konsole (F12) und folge den Anweisungen.</p>
 
-  <script>
-  // Füge hier deinen gesamten JavaScript-Code rein, den ich dir gegeben habe
-  // (kopiere alles aus dem SpielStarten()-Code inklusive aller Funktionen)
+<h1>Wortspiel</h1>
 
-  // Beispiel:
-  // const woerter = [...];
-  // function mischeArray(...) {...}
-  // async function spielStarten() {...}
-  // spielStarten();
+<label for="spielerInput">Wie viele Spieler nehmen teil?</label>
+<input type="number" id="spielerInput" min="1" value="3" />
 
-  // Falls du möchtest, kann ich dir die fertige index.html auch fertig erstellen.
-  </script>
+<label for="imposterInput">Wie viele davon sind Imposter?</label>
+<input type="number" id="imposterInput" min="0" value="1" />
+
+<button id="startBtn">Spiel starten</button>
+
+<div id="ausgabe"></div>
+<button id="weiterBtn">Weiter</button>
+
+<script>
+(() => {
+  const woerter = [
+    "Apfel", "Banane", "Computer", "Straße", "Haus", "Baum", "Auto", "Buch", "Stuhl", "Tisch",
+    "Fenster", "Tür", "Lampe", "Schule", "Hund", "Katze", "Vogel", "Blume", "Berg", "See",
+    "Fluss", "Meer", "Wald", "Garten", "Brücke", "Zug", "Flugzeug", "Boot", "Küche", "Bad",
+    "Bett", "Sofa", "Bild", "Schrank", "Uhr", "Handy", "Kamera", "Radio", "Musik", "Film"
+    // ... kannst du erweitern ...
+  ];
+
+  const ausgabe = document.getElementById('ausgabe');
+  const startBtn = document.getElementById('startBtn');
+  const weiterBtn = document.getElementById('weiterBtn');
+  const spielerInput = document.getElementById('spielerInput');
+  const imposterInput = document.getElementById('imposterInput');
+
+  let spielerAnzahl, imposterAnzahl;
+  let rollen = [];
+  let aktuellerSpieler = 0;
+  let wort;
+
+  function mischeArray(array) {
+    for (let i = array.length -1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i +1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  function validiereEingaben() {
+    spielerAnzahl = parseInt(spielerInput.value);
+    imposterAnzahl = parseInt(imposterInput.value);
+
+    if (isNaN(spielerAnzahl) || spielerAnzahl < 1) {
+      alert("Bitte gib eine gültige Anzahl an Spielern ein (mindestens 1).");
+      return false;
+    }
+    if (isNaN(imposterAnzahl) || imposterAnzahl < 0 || imposterAnzahl >= spielerAnzahl) {
+      alert("Bitte gib eine gültige Anzahl an Impostern ein (0 bis Spieleranzahl - 1).");
+      return false;
+    }
+    return true;
+  }
+
+  function spielStarten() {
+    if (!validiereEingaben()) return;
+
+    // Rollen erstellen
+    rollen = [];
+    wort = woerter[Math.floor(Math.random() * woerter.length)];
+
+    for (let i = 0; i < imposterAnzahl; i++) rollen.push("Imposter");
+    for (let i = imposterAnzahl; i < spielerAnzahl; i++) rollen.push(wort);
+    mischeArray(rollen);
+
+    aktuellerSpieler = 0;
+    startBtn.style.display = 'none';
+    spielerInput.disabled = true;
+    imposterInput.disabled = true;
+    weiterBtn.style.display = 'inline-block';
+
+    zeigeNaechstenSpieler();
+  }
+
+  function zeigeNaechstenSpieler() {
+    if (aktuellerSpieler >= spielerAnzahl) {
+      // Alle Spieler hatten ihr Wort
+      const startspieler = Math.floor(Math.random() * spielerAnzahl) + 1;
+      ausgabe.innerHTML = `<p>Alle Spieler haben ihr Wort gesehen.</p>
+        <p>Spieler <strong>${startspieler}</strong> darf das Spiel starten. Viel Erfolg!</p>
+        <button id="neuBtn">Neue Runde spielen</button>`;
+      weiterBtn.style.display = 'none';
+
+      document.getElementById('neuBtn').addEventListener('click', () => {
+        spielerInput.disabled = false;
+        imposterInput.disabled = false;
+        startBtn.style.display = 'inline-block';
+        ausgabe.innerHTML = '';
+      });
+
+      return;
+    }
+
+    ausgabe.innerHTML = `Spieler <strong>${aktuellerSpieler + 1}</strong>, klicke auf "Weiter", um dein Wort zu sehen.`;
+  }
+
+  function zeigeWort() {
+    const inhalt = rollen[aktuellerSpieler];
+    ausgabe.innerHTML = `
+      <p>Spieler <strong>${aktuellerSpieler + 1}</strong>, dein Wort ist:</p>
+      <div style="color: green; font-weight: bold; font-size: 1.5em; margin: 10px 0; border: 2px solid green; padding: 10px; border-radius: 8px;">
+        ${inhalt}
+      </div>
+      <p>Klicke auf "Weiter", wenn du bereit bist, das Wort weiterzugeben.</p>
+    `;
+    aktuellerSpieler++;
+  }
+
+  weiterBtn.addEventListener('click', () => {
+    if (aktuellerSpieler < spielerAnzahl) {
+      if (ausgabe.innerHTML.includes("dein Wort ist")) {
+        // Wort wurde gezeigt, jetzt zum nächsten Spieler
+        zeigeNaechstenSpieler();
+      } else {
+        // Noch kein Wort gezeigt, Wort zeigen
+        zeigeWort();
+      }
+    }
+  });
+
+  startBtn.addEventListener('click', spielStarten);
+})();
+</script>
+
 </body>
 </html>
