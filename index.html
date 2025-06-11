@@ -58,10 +58,19 @@
 
     .input-row {
       display: flex;
-      flex-direction: column;
-      align-items: center;
+      flex-direction: row;
+      justify-content: center;
+      gap: 20px;
       width: 100%;
       margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 120px;
     }
 
     label {
@@ -188,16 +197,37 @@
       margin: 10px 0;
       text-align: center;
       max-width: 300px;
+      width: 100%;
+    }
+
+    .start-player {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--accent);
+      margin: 15px 0;
+      padding: 15px;
+      background-color: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      animation: pulse 2s infinite;
     }
 
     #modeToggle {
-      position: absolute;
-      top: 20px;
-      right: 20px;
+      position: fixed;
+      top: 15px;
+      right: 15px;
       background: none;
       border: none;
       font-size: 1.8rem;
       cursor: pointer;
+      z-index: 100;
+      padding: 5px;
+      background-color: rgba(0,0,0,0.2);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .player-indicator {
@@ -253,6 +283,31 @@
       .player-role {
         font-size: 1.1rem;
       }
+
+      .input-row {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .input-group {
+        width: 100%;
+      }
+
+      input {
+        width: 100%;
+        max-width: 120px;
+      }
+
+      #modeToggle {
+        top: 10px;
+        right: 10px;
+      }
+
+      .start-player {
+        font-size: 1.3rem;
+        padding: 12px;
+        margin: 10px 0;
+      }
     }
   </style>
 </head>
@@ -263,13 +318,14 @@
   <h1>Wortspiel</h1>
 
   <div class="input-row">
-    <label for="spielerInput">Spieleranzahl:</label>
-    <input type="number" id="spielerInput" min="1" value="3">
-  </div>
-
-  <div class="input-row">
-    <label for="imposterInput">Imposteranzahl:</label>
-    <input type="number" id="imposterInput" min="0" value="1">
+    <div class="input-group">
+      <label for="spielerInput">Spieleranzahl:</label>
+      <input type="number" id="spielerInput" min="1" value="3">
+    </div>
+    <div class="input-group">
+      <label for="imposterInput">Imposteranzahl:</label>
+      <input type="number" id="imposterInput" min="0" value="1">
+    </div>
   </div>
 
   <button id="startBtn">Spiel starten</button>
@@ -397,7 +453,11 @@
       cardContainer.style.display = 'none';
       
       const s = Math.floor(Math.random() * rollen.length) + 1;
-      endMessage.innerHTML = `<div class="start-player">Spieler ${s} beginnt</div>`;
+      endMessage.innerHTML = `
+        <div>Die Rollen wurden allen Spielern gezeigt!</div>
+        <div class="start-player">Spieler ${s} beginnt!</div>
+        <div style="margin-top:10px;">Viel Spaß beim Spielen!</div>
+      `;
       endMessage.style.display = 'block';
       neustartBtn.style.display = 'block';
       return;
