@@ -1,189 +1,455 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Wortspiel</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    max-width: 500px;
-    margin: 30px auto;
-    padding: 10px;
-    background: #f0f0f0;
-    border-radius: 8px;
-  }
-  h1 {
-    text-align: center;
-  }
-  label {
-    display: block;
-    margin-top: 15px;
-  }
-  input[type="number"] {
-    width: 100%;
-    padding: 8px;
-    font-size: 1rem;
-  }
-  button {
-    margin-top: 15px;
-    padding: 10px;
-    font-size: 1rem;
-    width: 100%;
-    box-sizing: border-box;
-    cursor: pointer;
-  }
-  #ausgabe {
-    margin-top: 20px;
-    min-height: 80px;
-    background: white;
-    border-radius: 6px;
-    padding: 15px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: green;
-    text-align: center;
-  }
-  #weiterBtn {
-    display: none;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wortspiel</title>
+  <style>
+    :root {
+      --main-bg: #1e1e2f;
+      --card-front: #2c3e50;
+      --card-front-text: #ffffff;
+      --card-back: #4caf50;
+      --text-color: #ffffff;
+      --accent: #ff4081;
+      --disabled: #cccccc;
+      --input-bg: rgba(255,255,255,0.1);
+    }
+
+    .light-mode {
+      --main-bg: #f0f2f5;
+      --card-front: #f8f9fa;
+      --card-front-text: #2c3e50;
+      --card-back: #3498db;
+      --text-color: #333333;
+      --accent: #e63946;
+      --disabled: #a8a8a8;
+      --input-bg: rgba(255,255,255,0.8);
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--main-bg);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 400px;
+      gap: 15px;
+    }
+
+    h1 {
+      color: var(--accent);
+      margin: 0 0 20px 0;
+      text-align: center;
+    }
+
+    .input-row {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    label {
+      margin-bottom: 5px;
+      font-weight: 500;
+      display: block;
+      text-align: center;
+    }
+
+    input {
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(0,0,0,0.2);
+      width: 80px;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 1.1rem;
+      width: 100%;
+      max-width: 300px;
+      margin: 5px 0;
+    }
+
+    #startBtn, #neustartBtn {
+      background-color: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+
+    #weiterBtn {
+      background-color: var(--card-back);
+      color: white;
+      font-weight: 600;
+      width: 150px;
+    }
+
+    #weiterBtn:disabled {
+      background-color: var(--disabled);
+      cursor: not-allowed;
+    }
+
+    #weiterBtn:hover:not(:disabled) {
+      background-color: #3e8e41;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .card-container {
+      perspective: 1000px;
+      width: 300px;
+      height: 200px;
+      margin-top: 30px;
+    }
+
+    .card {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      font-size: 1.5rem;
+      box-shadow: 
+        0 2px 4px rgba(0,0,0,0.1),
+        0 4px 8px rgba(0,0,0,0.1),
+        0 8px 16px rgba(0,0,0,0.1);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .card-front {
+      background-color: var(--card-front);
+      color: var(--card-front-text);
+    }
+
+    .card-back {
+      background-color: var(--card-back);
+      color: white;
+      transform: rotateY(180deg);
+    }
+
+    #ausgabe {
+      text-align: center;
+      margin: 10px 0;
+      min-height: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .progress {
+      margin-top: 5px;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    #endMessage {
+      background-color: rgba(0,0,0,0.1);
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+      text-align: center;
+      max-width: 300px;
+    }
+
+    #modeToggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      cursor: pointer;
+    }
+
+    .player-indicator {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: var(--accent);
+      margin-bottom: 10px;
+      text-align: center;
+      padding: 10px;
+      background-color: rgba(0,0,0,0.1);
+      border-radius: 8px;
+      width: 100%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .player-role {
+      font-size: 1.2rem;
+      margin-top: 5px;
+      font-weight: normal;
+      color: var(--text-color);
+    }
+
+    .imposter-role {
+      color: #ff4444 !important;
+      font-weight: bold;
+    }
+
+    .word-role {
+      color: var(--card-back);
+      font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      .card-container {
+        width: 250px;
+        height: 150px;
+      }
+      
+      .card-face {
+        font-size: 1.3rem;
+      }
+      
+      .player-indicator {
+        font-size: 1.5rem;
+      }
+      
+      .player-role {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
 </head>
 <body>
 
-<h1>Wortspiel</h1>
+<button id="modeToggle">🌓</button>
+<div class="game-container">
+  <h1>Wortspiel</h1>
 
-<label for="spielerInput">Wie viele Spieler nehmen teil?</label>
-<input type="number" id="spielerInput" min="1" value="3" />
+  <div class="input-row">
+    <label for="spielerInput">Spieleranzahl:</label>
+    <input type="number" id="spielerInput" min="1" value="3">
+  </div>
 
-<label for="imposterInput">Wie viele davon sind Imposter?</label>
-<input type="number" id="imposterInput" min="0" value="1" />
+  <div class="input-row">
+    <label for="imposterInput">Imposteranzahl:</label>
+    <input type="number" id="imposterInput" min="0" value="1">
+  </div>
 
-<button id="startBtn">Spiel starten</button>
+  <button id="startBtn">Spiel starten</button>
 
-<div id="ausgabe"></div>
-<button id="weiterBtn">Weiter</button>
+  <div id="ausgabe">
+    <div id="currentPlayer"></div>
+    <div class="progress" id="progress"></div>
+  </div>
+
+  <div class="card-container" style="display:none;">
+    <div class="card" id="karte">
+      <div class="card-face card-front">Klicke zum Aufdecken</div>
+      <div class="card-face card-back" id="wortAnzeige"></div>
+    </div>
+  </div>
+
+  <button id="weiterBtn" style="display:none;" disabled>Weiter</button>
+  <div id="endMessage" style="display:none;"></div>
+  <button id="neustartBtn" style="display:none;">Neue Runde starten</button>
+</div>
 
 <script>
 (() => {
   const woerter = [
-    "Apfel", "Banane", "Computer", "Straße", "Haus", "Baum", "Auto", "Buch", "Stuhl", "Tisch",
-    "Fenster", "Tür", "Lampe", "Schule", "Hund", "Katze", "Vogel", "Blume", "Berg", "See",
-    "Fluss", "Meer", "Wald", "Garten", "Brücke", "Zug", "Flugzeug", "Boot", "Küche", "Bad",
-    "Bett", "Sofa", "Bild", "Schrank", "Uhr", "Handy", "Kamera", "Radio", "Musik", "Film"
+    "Apfel", "Banane", "Computer", "Haus", "Auto", "Schule", "Garten", "Stuhl",
+    "Tisch", "Buch", "Lampe", "Fenster", "Tür", "Telefon", "Uhr", "Bild",
+    "Stift", "Papier", "Wasser", "Feuer", "Erde", "Luft", "Berg", "Fluss",
+    "See", "Meer", "Wald", "Wiese", "Sonne", "Mond", "Stern", "Wolke",
+    "Regen", "Schnee", "Wind", "Blitz", "Donner", "Hund", "Katze", "Maus",
+    "Vogel", "Fisch", "Pferd", "Kuh", "Schaf", "Ziege", "Huhn", "Ente",
+    "Gans", "Schwein", "Elefant", "Löwe", "Tiger", "Bär", "Wolf", "Fuchs",
+    "Hase", "Igel", "Frosch", "Schlange", "Eidechse", "Schildkröte", "Krokodil",
+    "Delfin", "Wal", "Hai", "Qualle", "Tintenfisch", "Krabbe", "Muschel",
+    "Schnecke", "Ameise", "Biene", "Wespe", "Fliege", "Mücke", "Schmetterling",
+    "Libelle", "Grille", "Heuschrecke", "Spinne", "Skorpion", "Tausendfüßler"
   ];
 
-  const ausgabe = document.getElementById('ausgabe');
+  const currentPlayerEl = document.getElementById('currentPlayer');
+  const progressEl = document.getElementById('progress');
   const startBtn = document.getElementById('startBtn');
   const weiterBtn = document.getElementById('weiterBtn');
+  const neustartBtn = document.getElementById('neustartBtn');
+  const modeToggle = document.getElementById('modeToggle');
   const spielerInput = document.getElementById('spielerInput');
   const imposterInput = document.getElementById('imposterInput');
+  const karte = document.getElementById('karte');
+  const wortAnzeige = document.getElementById('wortAnzeige');
+  const cardContainer = document.querySelector('.card-container');
+  const endMessage = document.getElementById('endMessage');
 
-  let spielerAnzahl, imposterAnzahl;
   let rollen = [];
   let aktuellerSpieler = 0;
+  let spielerAnzahl, imposterAnzahl;
   let wort;
-  let spielBeendet = false;
+  let flipTimer = null;
 
-  function mischeArray(array) {
-    for (let i = array.length -1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i +1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-  }
-
-  function validiereEingaben() {
-    spielerAnzahl = parseInt(spielerInput.value);
-    imposterAnzahl = parseInt(imposterInput.value);
-
-    if (isNaN(spielerAnzahl) || spielerAnzahl < 1) {
-      alert("Bitte gib eine gültige Anzahl an Spielern ein (mindestens 1).");
-      return false;
-    }
-    if (isNaN(imposterAnzahl) || imposterAnzahl < 0 || imposterAnzahl >= spielerAnzahl) {
-      alert("Bitte gib eine gültige Anzahl an Impostern ein (0 bis Spieleranzahl - 1).");
-      return false;
-    }
-    return true;
-  }
-
-  function spielStarten() {
-    if (!validiereEingaben()) return;
-
-    rollen = [];
-    wort = woerter[Math.floor(Math.random() * woerter.length)];
-
-    for (let i = 0; i < imposterAnzahl; i++) rollen.push("Imposter");
-    for (let i = imposterAnzahl; i < spielerAnzahl; i++) rollen.push(wort);
-    mischeArray(rollen);
-
-    aktuellerSpieler = 0;
-    spielBeendet = false;
-
-    startBtn.style.display = 'none';
-    spielerInput.disabled = true;
-    imposterInput.disabled = true;
-    weiterBtn.style.display = 'inline-block';
-
-    zeigeNaechstenSpieler();
-  }
-
-  function zeigeNaechstenSpieler() {
-    if (aktuellerSpieler >= spielerAnzahl) {
-      ausgabe.innerHTML = `Alle Spieler haben ihr Wort gesehen.<br>Klicke auf "Weiter", um den Startspieler zu ermitteln.`;
-      return;
-    }
-    ausgabe.innerHTML = `Spieler <strong>${aktuellerSpieler + 1}</strong>, klicke auf "Weiter", um dein Wort zu sehen.`;
-  }
-
-  function zeigeWort() {
-    const inhalt = rollen[aktuellerSpieler];
-    ausgabe.innerHTML = `
-      <p>Spieler <strong>${aktuellerSpieler + 1}</strong>, dein Wort ist:</p>
-      <div style="color: green; font-weight: bold; font-size: 1.5em; margin: 10px 0; border: 2px solid green; padding: 10px; border-radius: 8px;">
-        ${inhalt}
-      </div>
-      <p>Klicke auf "Weiter", wenn du bereit bist, das Wort weiterzugeben.</p>
-    `;
-    aktuellerSpieler++;
-  }
-
-  function zeigeEnde() {
-    const startspieler = Math.floor(Math.random() * spielerAnzahl) + 1;
-    ausgabe.innerHTML = `
-      <p>Alle Spieler haben ihr Wort gesehen.</p>
-      <p>Spieler <strong>${startspieler}</strong> darf das Spiel starten. Viel Erfolg!</p>
-      <button id="neuBtn">Neue Runde spielen</button>
-    `;
-    weiterBtn.style.display = 'none';
-    spielBeendet = true;
-
-    document.getElementById('neuBtn').addEventListener('click', () => {
-      spielerInput.disabled = false;
-      imposterInput.disabled = false;
-      startBtn.style.display = 'inline-block';
-      ausgabe.innerHTML = '';
-      spielBeendet = false;
-    });
-  }
-
-  weiterBtn.addEventListener('click', () => {
-    if (spielBeendet) return;
-
-    if (aktuellerSpieler < spielerAnzahl) {
-      if (ausgabe.innerHTML.includes("dein Wort ist")) {
-        zeigeNaechstenSpieler();
-      } else {
-        zeigeWort();
-      }
-    } else {
-      zeigeEnde();
-    }
+  modeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('light-mode');
+    modeToggle.textContent = document.body.classList.contains('light-mode') ? '🌙' : '🌞';
+    localStorage.setItem('mode', document.body.classList.contains('light-mode') ? 'light' : 'dark');
   });
 
-  startBtn.addEventListener('click', spielStarten);
+  if (localStorage.getItem('mode') === 'light') {
+    document.body.classList.add('light-mode');
+    modeToggle.textContent = '🌙';
+  }
+
+  function mische(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  function resetSpiel() {
+    startBtn.style.display = 'block';
+    weiterBtn.style.display = 'none';
+    neustartBtn.style.display = 'none';
+    cardContainer.style.display = 'none';
+    endMessage.style.display = 'none';
+    spielerInput.disabled = false;
+    imposterInput.disabled = false;
+    currentPlayerEl.textContent = '';
+    progressEl.textContent = '';
+    aktuellerSpieler = 0;
+    weiterBtn.disabled = true;
+    
+    if (flipTimer) {
+      clearTimeout(flipTimer);
+      flipTimer = null;
+    }
+    
+    karte.classList.remove('flipped');
+  }
+
+  startBtn.addEventListener('click', () => {
+    spielerAnzahl = +spielerInput.value;
+    imposterAnzahl = +imposterInput.value;
+    if (imposterAnzahl >= spielerAnzahl) {
+      alert("Es muss mindestens 1 Nicht-Imposter geben.");
+      return;
+    }
+
+    rollen = Array(imposterAnzahl).fill("Imposter")
+      .concat(Array(spielerAnzahl - imposterAnzahl).fill(null));
+    wort = woerter[Math.floor(Math.random() * woerter.length)];
+    rollen = rollen.map(r => r === null ? wort : r);
+    mische(rollen);
+
+    aktuellerSpieler = 0;
+    startBtn.style.display = 'none';
+    weiterBtn.style.display = 'block';
+    spielerInput.disabled = true;
+    imposterInput.disabled = true;
+
+    zeigeSpieler();
+  });
+
+  function zeigeSpieler() {
+    if (aktuellerSpieler >= rollen.length) {
+      currentPlayerEl.textContent = '';
+      progressEl.textContent = '';
+      weiterBtn.style.display = 'none';
+      cardContainer.style.display = 'none';
+      
+      const s = Math.floor(Math.random() * rollen.length) + 1;
+      endMessage.innerHTML = `<div class="start-player">Spieler ${s} beginnt</div>`;
+      endMessage.style.display = 'block';
+      neustartBtn.style.display = 'block';
+      return;
+    }
+
+    currentPlayerEl.innerHTML = `
+      <div class="player-indicator">
+        Spieler ${aktuellerSpieler + 1} ist dran
+      </div>
+    `;
+    
+    progressEl.textContent = `(${aktuellerSpieler + 1}/${rollen.length})`;
+    wortAnzeige.textContent = rollen[aktuellerSpieler];
+    
+    karte.classList.remove('flipped');
+    cardContainer.style.display = 'block';
+    weiterBtn.disabled = true;
+    endMessage.style.display = 'none';
+  }
+
+  karte.addEventListener('click', () => {
+    if (flipTimer) {
+      clearTimeout(flipTimer);
+      flipTimer = null;
+    }
+    
+    karte.classList.add('flipped');
+    weiterBtn.disabled = false;
+    
+    flipTimer = setTimeout(() => {
+      if (karte.classList.contains('flipped')) {
+        karte.classList.remove('flipped');
+      }
+    }, 5000);
+  });
+
+  weiterBtn.addEventListener('click', () => {
+    if (flipTimer) {
+      clearTimeout(flipTimer);
+      flipTimer = null;
+    }
+    
+    karte.classList.remove('flipped');
+    
+    setTimeout(() => {
+      aktuellerSpieler++;
+      zeigeSpieler();
+    }, 500);
+  });
+
+  neustartBtn.addEventListener('click', resetSpiel);
 })();
 </script>
-
 </body>
 </html>
